@@ -8,8 +8,11 @@ de Gymnasium: **Q-Learning tabular** (método clásico), **DQN con exploración
 uniforme** (Deep RL, la versión de libro de texto) y **DQN con exploración
 pegajosa** (Deep RL, la versión que sí funciona en este entorno).
 
-Fork de práctica de [`emiliomunozai/mountain_car`](https://github.com/emiliomunozai/mountain_car) — Grupo 10,
-Maestría en Analítica Aplicada, Universidad de La Sabana.
+Fork de práctica de [`emiliomunozai/mountain_car`](https://github.com/emiliomunozai/mountain_car).
+
+**Grupo 10** — Maestría en Analítica Aplicada, Universidad de La Sabana:
+Diego Rios · Nataly Valbuena · Marlon Umbarila · Nicolás Gamboa ·
+Jorge Anaya · Andrés Díaz · Lorena Valero
 
 Ningún agente usa Stable-Baselines3 ni librerías equivalentes: la red, el
 replay buffer, la red objetivo y los ciclos de entrenamiento están escritos a
