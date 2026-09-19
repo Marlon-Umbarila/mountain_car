@@ -7,6 +7,8 @@ Train, inspect, and visualise RL agents on [MountainCar-v0](https://gymnasium.fa
 written; the algorithms themselves are left as marked `EXERCISE` stubs for you
 to fill in. Start with **[EXERCISES.md](EXERCISES.md)**.
 
+Fork de práctica - Grupo 10
+
 ## MountainCar-v0 environment
 
 An under-powered car sits in a valley. Its engine is too weak to drive straight
