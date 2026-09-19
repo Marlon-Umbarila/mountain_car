@@ -39,11 +39,17 @@ class QNetwork(nn.Module):
     """
 
     def __init__(self, state_dim: int, action_dim: int, hidden: int = 128) -> None:
-        super().__init__()
-        raise NotImplementedError("EXERCISE 2a: build the Q-network")
+        super().__init__()  # SIEMPRE antes de crear submódulos
+        self.net = nn.Sequential(
+            nn.Linear(state_dim, hidden),   # 2 -> 128
+            nn.ReLU(),
+            nn.Linear(hidden, hidden),      # 128 -> 128
+            nn.ReLU(),
+            nn.Linear(hidden, action_dim),  # 128 -> 3, sin activación
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError("EXERCISE 2a: implement forward()")
+        return self.net(x)
 
 
 # ── Replay buffer ────────────────────────────────────────────────────
@@ -96,6 +102,8 @@ class DQNAgent:
         buffer_capacity: int = 100_000,
         target_update_freq: int = 10,
         hidden: int = 128,
+        stickiness: float = 0.9,   # <- nuevo: probabilidad de repetir la última acción exploratoria
+
     ) -> None:
         self.env_id = env_id
         self.lr = lr
@@ -123,6 +131,9 @@ class DQNAgent:
         self.optimizer = optim.Adam(self.q_net.parameters(), lr=lr)
         self.loss_fn = nn.MSELoss()
         self.buffer = ReplayBuffer(buffer_capacity)
+        
+        self.stickiness = stickiness
+        self._last_explore_action: int | None = None
 
     # ── policy ────────────────────────────────────────────────────────
 
@@ -147,7 +158,15 @@ class DQNAgent:
         to diagnose it from your own measurements first.
         """
         if not deterministic and random.random() < self.epsilon:
-            return random.randrange(self.action_dim)
+            # Exploración "pegajosa": con cierta probabilidad, repite la última
+            #acción exploratoria en vez de sortear una nueva -> produce rachas
+            # sostenidas (empuje izquierda/derecha) en vez de temblor aleatorio.
+            if self._last_explore_action is not None and random.random() < self.stickiness:
+                return self._last_explore_action
+            action = random.randrange(self.action_dim)
+            self._last_explore_action = action
+            return action
+
         with torch.no_grad():
             t = torch.as_tensor(state, dtype=torch.float32, device=self.device).unsqueeze(0)
             return int(self.q_net(t).argmax(dim=1).item())
@@ -177,27 +196,23 @@ class DQNAgent:
         next_states_t = self._tensor(next_states)
         terminateds_t = self._tensor(terminateds).unsqueeze(1)
 
-        # EXERCISE 2b: the DQN learning step. Four things to do:
-        #
-        #   1. current_q : Q(s, a) from the ONLINE net, for the actions that
-        #      were actually taken. self.q_net(states_t) is (B, action_dim);
-        #      you want (B, 1). Tip: .gather(1, actions_t) picks one column
-        #      per row.
-        #
-        #   2. next_q : max_a' Q_target(s', a') from the FROZEN TARGET net.
-        #      Tip: .max(dim=1, keepdim=True).values
-        #      Tip: wrap this in `with torch.no_grad():` -- no gradient should
-        #      flow into the target, that is the whole point of a target net.
-        #
-        #   3. target_q : the Bellman target, r + gamma * next_q, but with the
-        #      bootstrap term zeroed out wherever terminateds_t is 1.
-        #      Tip: multiplying by (1.0 - terminateds_t) does this branchlessly.
-        #
-        #   4. Take one gradient step on self.loss_fn(current_q, target_q).
-        #      Tip: zero_grad() -> backward() -> step(), in that order.
-        #
-        # Return the scalar loss value (.item()).
-        raise NotImplementedError("EXERCISE 2b: implement the DQN learning step")
+        # 1. Q(s, a) de la red ONLINE, solo para las acciones tomadas -> (B, 1)
+        current_q = self.q_net(states_t).gather(1, actions_t)
+
+        # 2. max_a' Q_target(s', a') de la red TARGET, sin gradiente
+        with torch.no_grad():
+            next_q = self.target_net(next_states_t).max(dim=1, keepdim=True).values
+
+            # 3. Target de Bellman, anulando el bootstrap donde terminated=1
+            target_q = rewards_t + self.gamma * next_q * (1.0 - terminateds_t)
+
+        # 4. Paso de gradiente
+        self.optimizer.zero_grad()
+        loss = self.loss_fn(current_q, target_q)
+        loss.backward()
+        self.optimizer.step()
+
+        return loss.item()
 
     # ── training loop ─────────────────────────────────────────────────
 
@@ -207,6 +222,7 @@ class DQNAgent:
 
         for episode in range(1, total_episodes + 1):
             obs, _ = env.reset()
+            self._last_explore_action = None
             total_reward = 0.0
             done = False
 
@@ -255,6 +271,7 @@ class DQNAgent:
         "buffer_capacity",
         "target_update_freq",
         "hidden",
+        "stickiness",   # <- agregado
     )
 
     def save(self, path: Path) -> None:

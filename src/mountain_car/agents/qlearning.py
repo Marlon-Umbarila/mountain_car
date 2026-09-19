@@ -7,6 +7,7 @@ discretised into a simple `n_bins x n_bins` grid -- no hand-tuned bounds and
 no special-casing needed.
 """
 import pickle
+import random
 from collections import defaultdict
 from pathlib import Path
 from typing import Self
@@ -47,17 +48,21 @@ class QLearningAgent:
 
     # ── helpers ───────────────────────────────────────────────────────
 
-    def discretize(self, obs: np.ndarray) -> tuple:
+    def discretize(self, obs: np.ndarray) -> tuple:  #Recibe la observacion que contiene posicion y velicidad
         """EXERCISE 1a: map a continuous observation to a discrete table key.
 
-        `obs` is a 2-element array (position, velocity). `self._bins[i]` holds
-        the bin edges for dimension i, already built for you in __init__.
-        Return a hashable key -- a tuple of one bin index per dimension.
+    `obs` is a 2-element array (position, velocity). `self._bins[i]` holds
+    the bin edges for dimension i, already built for you in __init__.
+    Return a hashable key -- a tuple of one bin index per dimension.
 
-        Tip: np.digitize(value, edges) returns the index of the bin a value
-        falls into. Tip: the key must be hashable, so build a tuple of ints.
-        """
-        raise NotImplementedError("EXERCISE 1a: implement discretize()")
+    Tip: np.digitize(value, edges) returns the index of the bin a value
+    falls into. Tip: the key must be hashable, so build a tuple of ints.
+    """
+        
+        return tuple(
+            int(np.digitize(value, edges))
+            for value, edges in zip(obs, self._bins)    # Devulve el bin de cada elemento de la observacion
+        )
 
     def select_action(self, state: tuple, *, deterministic: bool = False) -> int:
         """EXERCISE 1b: epsilon-greedy action selection.
@@ -72,7 +77,9 @@ class QLearningAgent:
         Tip: self.q_table is a defaultdict, so indexing an unseen state is safe
         and returns a zero vector. Tip: np.argmax gives you the best action.
         """
-        raise NotImplementedError("EXERCISE 1b: implement select_action()")
+        if not deterministic and random.random() < self.epsilon:
+            return random.randrange(self.n_actions)
+        return int(np.argmax(self.q_table[state]))
 
     def predict(self, obs: np.ndarray, *, deterministic: bool = True) -> tuple[int, None]:
         return self.select_action(self.discretize(obs), deterministic=deterministic), None
@@ -100,8 +107,14 @@ class QLearningAgent:
         Note that `terminated` is NOT the same as "the episode ended" -- see
         the training loop below for why that distinction matters here.
         """
-        raise NotImplementedError("EXERCISE 1c: implement the Q-Learning update")
+        if terminated:
+            target = reward
+        else:
+            target = reward + self.gamma * np.max(self.q_table[next_state])
 
+        td_error = target - self.q_table[state][action]
+        self.q_table[state][action] += self.lr * td_error
+        
     def train(self, total_episodes: int = 10_000, log_interval: int = 100) -> list[float]:
         env = gym.make(self.env_id)
         rewards_history: list[float] = []

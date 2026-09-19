@@ -12,12 +12,17 @@ requires-python = ">=3.11 , <3.12"
 
 dependencies = [
     "gymnasium[classic-control]>=1.2.3",
+    "matplotlib>=3.11.2",
     "numpy>=2.4.2",
+    "pandas>=3.0.6",
     "torch>=2.10.0",
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.15.5"]
+dev = [
+    "moviepy>=2.2.1",
+    "ruff>=0.15.5",
+]
 
 [project.scripts]
 mountaincar = "mountain_car.cli:main"
