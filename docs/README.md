@@ -50,10 +50,3 @@ actualización de Bellman** — según `src/mountain_car/agents/dqn.py`:
 7. **Pérdida y paso de gradiente** — MSE entre `Q(s,a)` de la red online y `y`;
    el gradiente actualiza **solo la red online** (la flecha del gradiente no
    llega a la red objetivo — ese es el punto de tener dos redes).
-
----
-
-> **Importante:** la rúbrica exige que estos dos esquemas sean **dibujo propio**
-> y asigna **0 puntos** a un esquema "ausente o autogenerado por IA". Dibújalos
-> tú (a mano, en Excalidraw, en PowerPoint, como prefieras) usando la lista de
-> arriba como guion de qué cajas y flechas no pueden faltar.
