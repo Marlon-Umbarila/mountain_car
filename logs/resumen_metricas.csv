@@ -1,0 +1,4 @@
+ejercicio,episodios_entrenados,reward_medio_ultimos_50,mejor_media_movil_50,mejor_episodio,peor_episodio,eval_reward_medio,eval_desviacion,eval_llega_bandera
+Ejercicio 1 · Q-Learning tabular,21000,-141.32,-125.0,-107.0,-200.0,-141.1,6.68,100/100
+Ejercicio 2 · DQN con exploración uniforme,1000,-199.32,-160.66,-114.0,-200.0,-200.0,0.0,0/100
+Ejercicio 3 · DQN con exploración pegajosa,2500,-110.4,-101.5,-83.0,-200.0,-112.54,27.58,98/100

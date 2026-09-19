@@ -1,0 +1,10 @@
+{
+  "episodes": 100,
+  "mean_reward": -141.1,
+  "std_reward": 6.67757440991862,
+  "best_reward": -114.0,
+  "worst_reward": -150.0,
+  "reached_flag": 100,
+  "training_episodes": 21000,
+  "states_visited": 297
+}

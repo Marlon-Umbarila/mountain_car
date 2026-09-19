@@ -24,7 +24,7 @@ def record_last_episode(agent: DQNAgent, name: str, episodes: int = 3) -> None:
         done = False
         while not done:
             action = agent.select_action(obs, deterministic=True)
-            obs, reward, terminated, truncated, _ = env.step(action)
+            obs, _reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
     env.close()
     print(f"Video guardado en {VIDEO_DIR}/ con prefijo '{name}'")

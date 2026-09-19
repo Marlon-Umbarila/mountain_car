@@ -1,0 +1,12 @@
+{
+  "episodes": 100,
+  "mean_reward": -112.54,
+  "std_reward": 27.5769541465333,
+  "best_reward": -83.0,
+  "worst_reward": -200.0,
+  "reached_flag": 98,
+  "training_episodes": 2500,
+  "stickiness": 0.9,
+  "target_update_freq": 10,
+  "epsilon_decay": 0.995
+}
