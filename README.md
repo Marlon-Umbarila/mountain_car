@@ -41,14 +41,6 @@ Jorge Anaya · Andrés Díaz · Lorena Valero
   en JSON, figuras y videos del comportamiento aprendido, todo en el repo.
 - **CI** con `ruff` (lint) y build del paquete en cada push.
 
-> [!NOTE]
-> Este README documenta tanto el **cómo usar** el proyecto como el **proceso
-> de diseño y diagnóstico** detrás de los tres agentes. Si solo buscas
-> reproducir los resultados, ve directo a [Instalación](#instalación) y
-> [Uso](#uso). Si te interesa el razonamiento detrás de cada decisión, la
-> sección [Proceso](#proceso-los-tres-ejercicios) lo cubre ejercicio por
-> ejercicio.
-
 ### Resultado en una línea
 
 | Agente | Episodios de entrenamiento | Evaluación determinista (100 ep.) | Llega a la bandera |
@@ -116,14 +108,6 @@ cd mountain_car
 uv sync
 ```
 
-> [!TIP]
-> Verificación rápida de que el entorno quedó bien instalado:
-> ```bash
-> uv run mountaincar inspect --steps 3
-> ```
-> Si imprime los espacios de estado/acción y un par de transiciones, todo está
-> en orden y puedes pasar directo a [Uso](#uso).
-
 ## Uso
 
 ### CLI
@@ -186,11 +170,6 @@ Para grabar el comportamiento aprendido en video:
 uv run python scripts/record_qlearning.py
 uv run python scripts/record_videos.py
 ```
-
-> [!NOTE]
-> Los tiempos son de una máquina con 2 núcleos de CPU. Nada de esto necesita
-> GPU: la red tiene 17 283 parámetros y el cuello de botella es avanzar el
-> entorno, no multiplicar matrices.
 
 ---
 
@@ -354,12 +333,7 @@ rama de `select_action`.
 
 | Q-Learning tabular | DQN |
 |---|---|
-| ![Esquema de Q-Learning](docs/esquema_qlearning.png) | ![Esquema de DQN](docs/esquema_dqn.png) |
-
-> [!IMPORTANT]
-> Ambos esquemas son dibujo propio del equipo (a mano, en Excalidraw o
-> PowerPoint) siguiendo el guion detallado en [`docs/README.md`](docs/README.md).
-> La rúbrica del curso asigna 0 puntos a un esquema ausente o autogenerado por IA.
+| ![Esquema de Q-Learning](docs/esquema_qlearning.png) | ![Esquema de DQN](docs/esquema_dqn.jpg) |
 
 ---
 
