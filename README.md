@@ -1,6 +1,20 @@
+<div align="center">
+
 # MountainCar-v0 — Aprendizaje por Refuerzo
 
-![CI](https://github.com/Marlon-Umbarila/mountain_car/actions/workflows/ci.yml/badge.svg?branch=main)
+*Q-Learning tabular y Deep Q-Network implementados desde cero, comparados y diagnosticados sobre un entorno de recompensa plana*
+
+[![CI](https://github.com/Marlon-Umbarila/mountain_car/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Marlon-Umbarila/mountain_car/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](pyproject.toml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
+[Resumen](#resumen) • [Instalación](#instalación) • [Uso](#uso) • [Estructura del repositorio](#estructura-del-repositorio) • [Proceso](#proceso-los-tres-ejercicios) • [Resultados](#resultados-y-evidencia)
+
+</div>
+
+---
+
+## Resumen
 
 Implementación desde cero y comparación de tres estrategias de aprendizaje por
 refuerzo sobre el entorno [MountainCar-v0](https://gymnasium.farama.org/environments/classic_control/mountain_car/)
@@ -14,13 +28,29 @@ Fork de práctica de [`emiliomunozai/mountain_car`](https://github.com/emiliomun
 Diego Rios · Nataly Valbuena · Marlon Umbarila · Nicolás Gamboa ·
 Jorge Anaya · Andrés Díaz · Lorena Valero
 
-Ningún agente usa Stable-Baselines3 ni librerías equivalentes: la red, el
-replay buffer, la red objetivo y los ciclos de entrenamiento están escritos a
-mano, de modo que cada parte del algoritmo es visible y editable.
+### Qué incluye este repositorio
 
----
+- **Tres agentes de RL escritos a mano** — ningún agente usa Stable-Baselines3
+  ni librerías equivalentes: la red, el replay buffer, la red objetivo y los
+  ciclos de entrenamiento están escritos a mano, de modo que cada parte del
+  algoritmo es visible y editable.
+- **CLI unificada** (`mountaincar`) para entrenar, evaluar, simular y grabar
+  en video cualquiera de los agentes.
+- **Pipeline reproducible** — scripts que entrenan, evalúan y generan todas
+  las figuras y tablas de este README a partir de los mismos comandos.
+- **Evidencia versionada** — CSV episodio a episodio, métricas de evaluación
+  en JSON, figuras y videos del comportamiento aprendido, todo en el repo.
+- **CI** con `ruff` (lint) y build del paquete en cada push.
 
-## Resultado en una línea
+> [!NOTE]
+> Este README documenta tanto el **cómo usar** el proyecto como el **proceso
+> de diseño y diagnóstico** detrás de los tres agentes. Si solo buscas
+> reproducir los resultados, ve directo a [Instalación](#instalación) y
+> [Uso](#uso). Si te interesa el razonamiento detrás de cada decisión, la
+> sección [Proceso](#proceso-los-tres-ejercicios) lo cubre ejercicio por
+> ejercicio.
+
+### Resultado en una línea
 
 | Agente | Episodios de entrenamiento | Evaluación determinista (100 ep.) | Llega a la bandera |
 |---|---:|---:|---:|
@@ -87,13 +117,15 @@ cd mountain_car
 uv sync
 ```
 
-Verificación rápida de que el entorno quedó bien instalado:
+> [!TIP]
+> Verificación rápida de que el entorno quedó bien instalado:
+> ```bash
+> uv run mountaincar inspect --steps 3
+> ```
+> Si imprime los espacios de estado/acción y un par de transiciones, todo está
+> en orden y puedes pasar directo a [Uso](#uso).
 
-```bash
-uv run mountaincar inspect --steps 3
-```
-
-## Cómo ejecutarlo
+## Uso
 
 ### CLI
 
@@ -156,9 +188,58 @@ uv run python scripts/record_qlearning.py
 uv run python scripts/record_videos.py
 ```
 
+> [!NOTE]
 > Los tiempos son de una máquina con 2 núcleos de CPU. Nada de esto necesita
 > GPU: la red tiene 17 283 parámetros y el cuello de botella es avanzar el
 > entorno, no multiplicar matrices.
+
+---
+
+## Estructura del repositorio
+
+Vista rápida del árbol de carpetas y qué hace cada script:
+
+```
+src/mountain_car/
+├── cli.py                    # CLI en argparse, un comando por función
+└── agents/
+    ├── qlearning.py          # Q-Learning tabular  (Ejercicio 1)
+    └── dqn.py                # QNetwork, ReplayBuffer, DQNAgent  (Ejercicios 2 y 3)
+scripts/
+├── run_qlearning.py          # entrena + evalúa + registra el Ejercicio 1
+├── run_dqn.py                # entrena + evalúa + registra los Ejercicios 2 y 3
+├── make_evidence.py          # figuras por ejercicio + tabla comparativa
+├── record_qlearning.py       # graba el agente tabular en video
+└── record_videos.py          # graba los agentes DQN en video
+plot_learning_curves.py       # figura comparativa de las tres curvas
+logs/                         # CSV episodio a episodio + métricas de evaluación
+plots/                        # figuras generadas
+videos/                       # comportamiento aprendido, en video
+docs/                         # esquemas del ciclo de entrenamiento
+Documentacion/                # documento consolidado del proyecto (.docx)
+saves/                        # agentes entrenados (no versionado)
+EXERCISES.md                  # enunciado original de los ejercicios
+```
+
+Y, con más detalle práctico — qué es cada cosa y cuándo la vas a necesitar:
+
+| Ruta | Contenido | Cuándo entrar aquí |
+|---|---|---|
+| `src/mountain_car/cli.py` | Comando `mountaincar` (argparse): `train`, `load`, `sim`, `render`, `inspect`, etc. | Para agregar un comando nuevo a la CLI o entender qué hace cada uno. |
+| `src/mountain_car/agents/qlearning.py` | `QLearningAgent`: discretización, tabla Q, epsilon-greedy, actualización TD. | Para revisar o modificar la lógica del Ejercicio 1. |
+| `src/mountain_car/agents/dqn.py` | `QNetwork`, `ReplayBuffer`, `DQNAgent`: red, buffer, red objetivo, exploración pegajosa. | Para revisar o modificar la lógica de los Ejercicios 2 y 3. |
+| `scripts/run_qlearning.py`, `scripts/run_dqn.py` | Entrenan un agente de punta a punta, evalúan 100 episodios deterministas y guardan CSV + JSON. | Para reproducir cualquiera de los tres resultados del README. |
+| `scripts/make_evidence.py` | Genera las figuras por ejercicio y `logs/resumen_metricas.csv` a partir de los CSV crudos. | Después de entrenar, para regenerar las gráficas y la tabla comparativa. |
+| `scripts/record_qlearning.py`, `scripts/record_videos.py` | Graban episodios jugados por un agente ya entrenado. | Para producir los `.mp4` de `videos/`. |
+| `plot_learning_curves.py` | Genera la figura comparativa de las tres curvas de aprendizaje superpuestas. | Para regenerar `plots/learning_curves*.png`. |
+| `logs/` | Un CSV por agente con el reward de **cada episodio**, más un JSON de evaluación por agente y el resumen comparativo. | Fuente de verdad de todos los números que aparecen en este README. |
+| `plots/` | Todas las figuras `.png` generadas por los scripts anteriores. | Para ver o reutilizar las gráficas sin tener que regenerarlas. |
+| `videos/` | Clips `.mp4` del comportamiento aprendido de cada agente. | Para ver a los agentes jugar sin instalar nada. |
+| `docs/` | Esquemas dibujados a mano del ciclo de entrenamiento de cada agente (requisito de la rúbrica). | Para consultar o actualizar los diagramas referenciados más abajo. |
+| `Documentacion/` | Entrega consolidada del proyecto en `.docx`. | Documento formal para la entrega del curso, no necesario para correr el código. |
+| `saves/` | Pesos/tablas de los agentes ya entrenados (`.pkl`, `.pt`). No está versionado. | Se genera solo al correr `train`/`run_*`; bórralo con `mountaincar delete <agente>` para reentrenar desde cero. |
+| `EXERCISES.md` | Enunciado original de los tres ejercicios tal como se recibió. | Para ver qué se pedía antes de leer cómo se resolvió, en la sección de abajo. |
+| `pyproject.toml` | Dependencias, versión de Python y punto de entrada de la CLI. | Para agregar una dependencia nueva o revisar los requisitos exactos. |
 
 ---
 
@@ -275,6 +356,11 @@ rama de `select_action`.
 | Q-Learning tabular | DQN |
 |---|---|
 | ![Esquema de Q-Learning](docs/esquema_qlearning.png) | ![Esquema de DQN](docs/esquema_dqn.png) |
+
+> [!IMPORTANT]
+> Ambos esquemas son dibujo propio del equipo (a mano, en Excalidraw o
+> PowerPoint) siguiendo el guion detallado en [`docs/README.md`](docs/README.md).
+> La rúbrica del curso asigna 0 puntos a un esquema ausente o autogenerado por IA.
 
 ---
 
@@ -402,30 +488,8 @@ episodios". Sus registros están en `logs/ejercicio3_dqn_afinado.csv`.
 
 ---
 
-## Estructura del proyecto
+<div align="center">
 
-```
-src/mountain_car/
-├── cli.py                    # CLI en argparse, un comando por función
-└── agents/
-    ├── qlearning.py          # Q-Learning tabular  (Ejercicio 1)
-    └── dqn.py                # QNetwork, ReplayBuffer, DQNAgent  (Ejercicios 2 y 3)
-scripts/
-├── run_qlearning.py          # entrena + evalúa + registra el Ejercicio 1
-├── run_dqn.py                # entrena + evalúa + registra los Ejercicios 2 y 3
-├── make_evidence.py          # figuras por ejercicio + tabla comparativa
-├── record_qlearning.py       # graba el agente tabular en video
-└── record_videos.py          # graba los agentes DQN en video
-plot_learning_curves.py       # figura comparativa de las tres curvas
-logs/                         # CSV episodio a episodio + métricas de evaluación
-plots/                        # figuras generadas
-videos/                       # comportamiento aprendido, en video
-docs/                         # esquemas del ciclo de entrenamiento
-Documentacion/                # documento consolidado del proyecto (.docx)
-saves/                        # agentes entrenados (no versionado)
-EXERCISES.md                  # enunciado original de los ejercicios
-```
+Apache-2.0 — ver [LICENSE](LICENSE)
 
-## Licencia
-
-Apache-2.0 — ver [LICENSE](LICENSE).
+</div>
