@@ -24,21 +24,20 @@ pegajosa** (Deep RL, la versión que sí funciona en este entorno).
 
 Fork de práctica de [`emiliomunozai/mountain_car`](https://github.com/emiliomunozai/mountain_car).
 
-**Grupo 10** — Maestría en Analítica Aplicada, Universidad de La Sabana:
+**Grupo 10** — Maestría en Inteligencia Artificial, Universidad de La Sabana:
 Diego Rios · Nataly Valbuena · Marlon Umbarila · Nicolás Gamboa ·
 Jorge Anaya · Andrés Díaz · Lorena Valero
 
 ### Qué incluye este repositorio
 
-- **Tres agentes de RL escritos a mano** — ningún agente usa Stable-Baselines3
-  ni librerías equivalentes: la red, el replay buffer, la red objetivo y los
-  ciclos de entrenamiento están escritos a mano, de modo que cada parte del
-  algoritmo es visible y editable.
+- **Tres agentes de RL escritos a mano**: la red, el replay buffer, la red
+  objetivo y los ciclos de entrenamiento están implementados directamente,
+  de modo que cada parte del algoritmo es visible y editable.
 - **CLI unificada** (`mountaincar`) para entrenar, evaluar, simular y grabar
   en video cualquiera de los agentes.
-- **Pipeline reproducible** — scripts que entrenan, evalúan y generan todas
+- **Pipeline reproducible**: scripts que entrenan, evalúan y generan todas
   las figuras y tablas de este README a partir de los mismos comandos.
-- **Evidencia versionada** — CSV episodio a episodio, métricas de evaluación
+- **Evidencia versionada**: CSV episodio a episodio, métricas de evaluación
   en JSON, figuras y videos del comportamiento aprendido, todo en el repo.
 - **CI** con `ruff` (lint) y build del paquete en cada push.
 
@@ -221,7 +220,7 @@ saves/                        # agentes entrenados (no versionado)
 EXERCISES.md                  # enunciado original de los ejercicios
 ```
 
-Y, con más detalle práctico — qué es cada cosa y cuándo la vas a necesitar:
+Y, con más detalle práctico, qué es cada cosa y cuándo la vas a necesitar:
 
 | Ruta | Contenido | Cuándo entrar aquí |
 |---|---|---|
@@ -293,7 +292,7 @@ de memorizar celdas exactas.
   `self.target_net` dentro de `torch.no_grad()`: si el gradiente fluyera hacia
   el objetivo, la red perseguiría un blanco que se mueve con cada paso. El
   factor `(1 − terminated)` anula el bootstrap solo en transiciones terminales
-  reales — y usa `terminated`, no `terminated or truncated`, porque llegar al
+  reales, y usa `terminated`, no `terminated or truncated`, porque llegar al
   límite de 200 pasos no es un final real del episodio.
 
 **Tropiezo encontrado:** `Module [QNetwork] is missing the required forward
@@ -312,7 +311,7 @@ Archivo: `src/mountain_car/agents/dqn.py`, método `select_action`
 **Diagnóstico.** La recompensa es `−1` en cada paso sin importar la acción. Si
 el agente nunca llega a la bandera, todos los estados valen lo mismo: el punto
 fijo teórico es `−1 / (1 − gamma) = −100` con `gamma = 0.99`. La red aprende
-exactamente eso — que ninguna acción importa — lo cual, dados los datos que vio,
+exactamente eso: que ninguna acción importa, algo que, dados los datos que vio,
 es cierto. **El problema está aguas arriba del aprendizaje: en cómo se recolectan
 los datos.**
 
@@ -327,7 +326,7 @@ exploración. Agregar episodios nunca lo arregla.
 hiperparámetro `stickiness` (0.9 por defecto): al explorar, con esa probabilidad
 se repite la última acción exploratoria en lugar de sortear una nueva. Las
 acciones consecutivas dejan de ser independientes y la exploración pasa de un
-temblor aleatorio a un impulso sostenido — como un niño en un columpio que
+temblor aleatorio a un impulso sostenido, como un niño en un columpio que
 mantiene el mismo sentido de bombeo varios pasos seguidos.
 
 No se tocan la red, la regla de aprendizaje, la recompensa ni el entorno.
@@ -378,7 +377,7 @@ de −140. El detalle interesante es que **nunca cruza el umbral de −110**: la
 discretización en 400 celdas pone un techo al desempeño, porque toda
 observación que caiga en la misma celda es indistinguible para el agente y no
 puede afinar más la política. A cambio, es el agente más consistente de los
-tres — su desviación de 6.7 es cuatro veces menor que la del DQN.
+tres, ya que su desviación de 6.7 es cuatro veces menor que la del DQN.
 
 ### Ejercicio 2 — DQN con exploración uniforme
 
@@ -408,9 +407,9 @@ Misma red, mismo `_learn`, mismo entorno, misma recompensa: lo único que cambi�
 es `stickiness` de 0.0 a 0.9. La curva despega hacia el episodio ~700 y se
 sostiene por encima de −110 desde el episodio ~1 250 en adelante. Su punto
 débil es la variabilidad: la desviación de 27.6 viene de los 2 episodios (de
-100) en los que la política falla y agota los 200 pasos — la posición inicial
-de `env.reset()` es aleatoria y en algunas de ellas la política aprendida no
-alcanza a acumular impulso.
+100) en los que la política falla y agota los 200 pasos, porque la posición
+inicial de `env.reset()` es aleatoria y en algunas de ellas la política
+aprendida no alcanza a acumular impulso.
 
 ### Comparación
 
@@ -432,24 +431,25 @@ Los números están en `logs/resumen_metricas.csv`, generado por
 ### Conclusión
 
 Comparando las tres estrategias, **la más efectiva es el DQN con exploración
-pegajosa**: llega a la bandera en el 98 % de los episodios de evaluación con
-una octava parte de los episodios de entrenamiento que necesita el agente
-tabular, y es el único de los tres cuya media móvil de entrenamiento supera el
-umbral convencional de "resuelto".
+pegajosa**: llega a la bandera en el 98 % de los episodios de evaluación y,
+además, lo logra con una octava parte de los episodios de entrenamiento que
+necesita el agente tabular. Es, de hecho, el único de los tres cuya media
+móvil de entrenamiento supera el umbral convencional de "resuelto".
 
-El hallazgo central no es cuál algoritmo gana, sino **por qué** el Ejercicio 2
-pierde. La comparación entre los Ejercicios 2 y 3 aísla una sola variable —la
-estructura estadística de la exploración— manteniendo constante todo lo demás.
-En un entorno de recompensa plana como MountainCar, no basta con explorar
-*mucho* (`epsilon` alto): la exploración tiene que ser capaz de **emitir la
-forma de comportamiento** que la tarea exige. Una exploración sin correlación
-temporal jamás produce la racha sostenida que se necesita para escapar del
-valle, y ninguna cantidad de episodios ni de capacidad de red compensa eso,
-porque el fallo ocurre en la recolección de datos, no en el aprendizaje.
+Sin embargo, el hallazgo central no es cuál algoritmo gana, sino **por qué**
+el Ejercicio 2 pierde. La comparación entre los Ejercicios 2 y 3 aísla una
+sola variable, la estructura estadística de la exploración, y mantiene
+constante todo lo demás. Esto deja ver que, en un entorno de recompensa plana
+como MountainCar, no basta con explorar *mucho* (`epsilon` alto): la
+exploración también tiene que ser capaz de **emitir la forma de
+comportamiento** que la tarea exige. Como una exploración sin correlación
+temporal nunca produce la racha sostenida que se necesita para escapar del
+valle, ninguna cantidad de episodios ni de capacidad de red logra compensarlo,
+ya que el fallo ocurre en la recolección de datos y no en el aprendizaje.
 
-Si el objetivo fuera la consistencia por encima del desempeño máximo, el agente
-tabular sigue siendo defendible: nunca falla un episodio y su desviación es
-cuatro veces menor.
+Aun así, si el objetivo fuera priorizar la consistencia por encima del
+desempeño máximo, el agente tabular seguiría siendo defendible, pues nunca
+falla un episodio y su desviación es cuatro veces menor.
 
 ### Un intento de afinar el DQN (y por qué no se adoptó)
 
@@ -474,17 +474,19 @@ uv run python scripts/run_dqn.py --tag ejercicio3_dqn_afinado \
 **Entrenar más no mejoró el resultado: lo empeoró.** Ambas configuraciones
 alcanzan prácticamente el mismo pico (−101.5 vs −103.6), pero la afinada no lo
 sostiene: su media móvil oscila entre −108 y −153 en los últimos 800 episodios
-y termina 16 puntos por debajo de donde estaba en su mejor momento. Es
-inestabilidad clásica de DQN — la red sigue actualizándose sobre un buffer
-dominado por trayectorias recientes y olvida parte de lo aprendido.
+y termina 16 puntos por debajo de donde estaba en su mejor momento. Se trata
+de la inestabilidad clásica de DQN, en la que la red sigue actualizándose
+sobre un buffer dominado por trayectorias recientes y termina olvidando parte
+de lo aprendido.
 
-La versión afinada sí gana en fiabilidad (100/100 episodios y un peor caso de
-−168 frente a −200), así que la elección depende del criterio: **−112.5 con un
-2 % de fallos si importa el reward medio, −134.2 sin fallos si importa no
-quedarse nunca atascado.** Se mantiene la configuración de 2 500 episodios como
-la principal porque es la que compite con el umbral de −110, y se deja esta
-prueba documentada porque descarta explícitamente la vía de "entrenar más
-episodios". Sus registros están en `logs/ejercicio3_dqn_afinado.csv`.
+Aun así, la versión afinada sí gana en fiabilidad (100/100 episodios y un
+peor caso de −168 frente a −200), así que la elección depende del criterio:
+**−112.5 con un 2 % de fallos si importa el reward medio, o −134.2 sin fallos
+si importa no quedarse nunca atascado.** Por eso se mantiene la configuración
+de 2 500 episodios como la principal, ya que es la que compite con el umbral
+de −110, y se deja esta prueba documentada porque descarta explícitamente la
+vía de "entrenar más episodios". Sus registros están en
+`logs/ejercicio3_dqn_afinado.csv`.
 
 ---
 
