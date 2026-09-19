@@ -360,10 +360,42 @@ porque el fallo ocurre en la recolección de datos, no en el aprendizaje.
 
 Si el objetivo fuera la consistencia por encima del desempeño máximo, el agente
 tabular sigue siendo defendible: nunca falla un episodio y su desviación es
-cuatro veces menor. Para acercar el DQN a la referencia de −106 sin tocar más
-lógica, quedan como ajustes naturales subir el número de episodios, variar
-`stickiness` entre 0.85 y 0.95, o reducir `target_update_freq` una vez que el
-aprendizaje ya es estable.
+cuatro veces menor.
+
+### Un intento de afinar el DQN (y por qué no se adoptó)
+
+La hipótesis natural para acercar el DQN a la referencia de −106 es entrenarlo
+más tiempo y sincronizar la red objetivo con más frecuencia. Se probó:
+4 000 episodios, `target_update_freq = 5`, `epsilon_decay = 0.997`.
+
+```bash
+uv run python scripts/run_dqn.py --tag ejercicio3_dqn_afinado \
+    --stickiness 0.9 --episodes 4000 --target-update-freq 5 --epsilon-decay 0.997
+```
+
+| | Ej. 3 (2 500 ep.) | Afinado (4 000 ep.) |
+|---|---:|---:|
+| Mejor media móvil (ventana 50) | **−101.5** | −103.6 |
+| Media móvil al terminar | **−110.4** | −126.1 |
+| Media de los últimos 500 episodios | **−108.2** | −134.6 |
+| Evaluación determinista (100 ep.) | **−112.5 ± 27.6** | −134.2 ± 22.1 |
+| Llega a la bandera | 98/100 | **100/100** |
+| Peor episodio de evaluación | −200 | **−168** |
+
+**Entrenar más no mejoró el resultado: lo empeoró.** Ambas configuraciones
+alcanzan prácticamente el mismo pico (−101.5 vs −103.6), pero la afinada no lo
+sostiene: su media móvil oscila entre −108 y −153 en los últimos 800 episodios
+y termina 16 puntos por debajo de donde estaba en su mejor momento. Es
+inestabilidad clásica de DQN — la red sigue actualizándose sobre un buffer
+dominado por trayectorias recientes y olvida parte de lo aprendido.
+
+La versión afinada sí gana en fiabilidad (100/100 episodios y un peor caso de
+−168 frente a −200), así que la elección depende del criterio: **−112.5 con un
+2 % de fallos si importa el reward medio, −134.2 sin fallos si importa no
+quedarse nunca atascado.** Se mantiene la configuración de 2 500 episodios como
+la principal porque es la que compite con el umbral de −110, y se deja esta
+prueba documentada porque descarta explícitamente la vía de "entrenar más
+episodios". Sus registros están en `logs/ejercicio3_dqn_afinado.csv`.
 
 ---
 
