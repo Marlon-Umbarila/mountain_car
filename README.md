@@ -331,9 +331,13 @@ rama de `select_action`.
 
 ## Esquemas del ciclo de entrenamiento
 
-| Q-Learning tabular | DQN |
-|---|---|
-| ![Esquema de Q-Learning](docs/esquema_qlearning.png) | ![Esquema de DQN](docs/esquema_dqn.png) |
+### Q-Learning tabular
+
+![Esquema de Q-Learning](docs/esquema_qlearning.png)
+
+### DQN
+
+![Esquema de DQN](docs/esquema_dqn.png)
 
 ---
 
