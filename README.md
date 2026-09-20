@@ -333,7 +333,7 @@ rama de `select_action`.
 
 | Q-Learning tabular | DQN |
 |---|---|
-| ![Esquema de Q-Learning](docs/esquema_qlearning.png) | ![Esquema de DQN](docs/esquema_dqn.jpg) |
+| ![Esquema de Q-Learning](docs/esquema_qlearning.png) | ![Esquema de DQN](docs/esquema_dqn.png) |
 
 ---
 
